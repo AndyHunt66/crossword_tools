@@ -13,6 +13,9 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryparser.xml.builders.BooleanQueryBuilder;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -43,10 +46,13 @@ public class Searcher
             String sortedWord = new String(charArray);
 
             try {
-                Term term = new Term("alphaSort", sortedWord);
-                Query query2 = new TermQuery(term);
+                BooleanQuery.Builder bq = new BooleanQuery.Builder();
 
-                TopDocs results = indexSearcher.search(query2,Integer.MAX_VALUE);
+                bq.add(new TermQuery(new Term("alphaSort", sortedWord)), BooleanClause.Occur.MUST);
+                bq.add(new TermQuery(new Term("pos.1", "d")), BooleanClause.Occur.MUST);
+                Query q2 = bq.build();
+
+                TopDocs results = indexSearcher.search(q2,Integer.MAX_VALUE);
                 ScoreDoc[] hits = results.scoreDocs;
                 for (ScoreDoc hit : hits)
                 {
