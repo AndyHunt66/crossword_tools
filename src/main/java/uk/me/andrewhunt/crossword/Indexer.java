@@ -17,11 +17,13 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
-public class Indexer {
+public class Indexer
+{
 
     private IndexWriter writer;
 
-    public Indexer(String dirPath) throws IOException {
+    public Indexer(String dirPath) throws IOException
+    {
         Directory dir = FSDirectory.open(Paths.get(dirPath));
         Analyzer analyzer = new KeywordAnalyzer();
         IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
@@ -29,33 +31,38 @@ public class Indexer {
         this.writer = new IndexWriter(dir, iwc);
     }
 
-    public void finished() throws IOException {
+    public void finished() throws IOException
+    {
         writer.close();
     }
 
-    public void indexWord(String word) throws IOException {
+    public void indexWord(String word) throws IOException
+    {
 
         ArrayList<Field> fields = new ArrayList<Field>();
         Document doc = new Document();
         // Full word
         fields.add(new StringField("word", word, Field.Store.YES));
-        for (int i = 1; i <= word.length(); i++) {
+        for (int i = 1; i <= word.length(); i++)
+        {
             fields.add(new StringField("pos." + i, word.substring(i - 1, i), Field.Store.NO));
         }
 
-        char[] charArray = word.toCharArray();
-        Arrays.sort(charArray);
-        String sortedWord = new String(charArray);
+        String parts[] = word.split("");
+        Arrays.sort(parts);
+        String sortedWord = String.join("", parts);
         fields.add(new StringField("alphaSort", sortedWord, Field.Store.NO));
 
-        for (Field field : fields) {
+        for (Field field : fields)
+        {
             doc.add(field);
         }
         System.out.println("adding " + word);
         writer.addDocument(doc);
     }
 
-    public void indexFileOfWords(String filename) throws IOException {
+    public void indexFileOfWords(String filename) throws IOException
+    {
         for (String word : Files.readAllLines(Paths.get(filename)))
         {
             indexWord(word);
