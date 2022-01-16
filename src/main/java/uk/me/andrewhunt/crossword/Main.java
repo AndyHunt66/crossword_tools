@@ -20,7 +20,7 @@ public class Main
             System.exit(0);
         }
         // search <index directory> <search type> <search text>
-        else if (args[0].equals("search"))//&& args.length ==4)
+        else if (args[0].equals("search"))
         {
             ArrayList<String> results = null;
             Searcher searcher = new Searcher(args[1]);

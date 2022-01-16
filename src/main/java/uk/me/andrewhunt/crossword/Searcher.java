@@ -29,6 +29,7 @@ public class Searcher {
      * @throws IOException
      */
     public ArrayList<String> search(String searchTerm) throws IOException {
+        searchTerm = searchTerm.toLowerCase();
         ArrayList<String> words = new ArrayList<String>();
         BooleanQuery.Builder bq = new BooleanQuery.Builder();
         int delimiter = searchTerm.indexOf(":");

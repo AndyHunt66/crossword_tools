@@ -33,12 +33,13 @@ public class Indexer
 
     public void finished() throws IOException
     {
+        writer.forceMerge(1);
         writer.close();
     }
 
     public void indexWord(String word) throws IOException
     {
-
+        word = word.toLowerCase();
         ArrayList<Field> fields = new ArrayList<Field>();
         Document doc = new Document();
         // Full word
@@ -67,8 +68,5 @@ public class Indexer
         {
             indexWord(word);
         }
-
     }
-
-
 }
