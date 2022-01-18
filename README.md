@@ -7,6 +7,7 @@ Based on Apache Lucene, one of the aims is to be tiny tiny tiny, but powerful.
 The end-goal is to have a fully-featured mobile app, but that's a long way off.
 
 Current capabilities:
+## Index
 - `java uk.me.andrewhunt.crossword.Main index ./index_directory ./words.txt`
 - `java uk.me.andrewhunt.crossword.Main index ./index_directory ./words.txt append`
 
@@ -16,6 +17,7 @@ Words.txt is one alpha-only word per line. The current one I use is from https:/
 
 If `append` is added, words.txt will be added to the index, otherwise a new index is created, overwriting what was there before.
 
+## Search
 - `java uk.me.andrewhunt.crossword.Main search ./index_directory search_term`
 
 Search_term can be one of three formats - abcdef (anagram only), :
@@ -51,9 +53,8 @@ A simple concatenation of anagram and crossword, joined with a logical boolean A
 E.g. `gasnir:.r..ns` produces `grains`
 
 
-There is currently very little defensive checking if files exist, or directories exist, or if the input is valid etc. etc.
 
-
+## Diff
 - `java uk.me.andrewhunt.crossword.Main diff ./words1.txt ./words2.txt`
 - `java uk.me.andrewhunt.crossword.Main diff ./words1.txt ./words2.txt ./output.txt`
 
@@ -61,6 +62,9 @@ Display a list of all the words in `words2.txt` that are not in `words1.txt`.
 
 Optionally, write the alphabetically sorted, concatenated contents of both files to `output.txt` 
 
+
+
+There is currently very little defensive checking anywhere as to if files exist, or directories exist, or if the input is valid etc. etc.
 
 ## Future To-Do
 - Partial anagrams
