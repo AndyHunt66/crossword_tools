@@ -8,19 +8,32 @@ public class Main
 {
     public static void main(String[] args) throws IOException
     {
-
-        // index <output index dir> <word list file>
-        if (args[0].equals("index") && args.length == 3)
+        if (args.length < 2 )
         {
-
-            Indexer indexer = new Indexer(args[1]);
+            printUsage();
+            System.exit(1);
+        }
+        // index <output index dir> <word list file>
+        // or
+        // index <output index dir> <word list file> <append>
+        if (args[0].equals("index") && ( args.length == 3 || args.length == 4))
+        {
+            Indexer indexer = null;
+            if (args.length == 3)
+            {
+                new Indexer(args[1]);
+            }
+            else
+            {
+                new Indexer(args[1], args[3]);
+            }
             indexer.indexFileOfWords(args[2]);
             indexer.finished();
 
             System.exit(0);
         }
-        // search <index directory> <search type> <search text>
-        else if (args[0].equals("search"))
+        // search <index directory> <search text>
+        else if (args[0].equals("search")  && args.length == 3)
         {
             ArrayList<String> results = null;
             Searcher searcher = new Searcher(args[1]);
@@ -30,7 +43,7 @@ public class Main
                 System.out.println(result);
             }
         }
-        else if (args[0].equals("console"))
+        else if (args[0].equals("console")  && args.length == 2)
         {
             Searcher searcher = new Searcher(args[1]);
             Scanner scanner = new Scanner(System.in);
@@ -45,12 +58,29 @@ public class Main
                 }
             }
         }
+        else if (args[0].equals("diff") )
+        {
+            if ( args.length == 3)
+            {
+                sortOfDiff diff = new sortOfDiff(args[1], args[2]);
+            }
+            if ( args.length == 4)
+            {
+                sortOfDiff diff = new sortOfDiff(args[1], args[2], args[3]);
+            }
+
+        }
         else
         {
-            System.out.println("AAAAAAAAA");
+            printUsage();
         }
-
-
     }
 
+    private static void printUsage()
+    {
+        System.out.println("Usage: ");
+        System.out.println("         index   <index directory> <word file>");
+        System.out.println("         search  <index directory> <search term>");
+        System.out.println("         console <index directory>");
+    }
 }

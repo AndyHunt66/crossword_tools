@@ -22,6 +22,20 @@ public class Indexer
 
     private IndexWriter writer;
 
+
+    public Indexer(String dirPath, String openMode) throws IOException
+    {
+        IndexWriterConfig.OpenMode mode = IndexWriterConfig.OpenMode.CREATE;
+        if (openMode.toLowerCase().equals("append"))
+        {
+            mode = IndexWriterConfig.OpenMode.CREATE_OR_APPEND;
+        }
+        Directory dir = FSDirectory.open(Paths.get(dirPath));
+        Analyzer analyzer = new KeywordAnalyzer();
+        IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
+        iwc.setOpenMode(mode);
+        this.writer = new IndexWriter(dir, iwc);
+    }
     public Indexer(String dirPath) throws IOException
     {
         Directory dir = FSDirectory.open(Paths.get(dirPath));
