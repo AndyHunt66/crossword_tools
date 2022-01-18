@@ -20,7 +20,7 @@ If `append` is added, words.txt will be added to the index, otherwise a new inde
 ## Search
 - `java uk.me.andrewhunt.crossword.Main search ./index_directory search_term`
 
-Search_term can be one of three formats - abcdef (anagram only), :
+Search_term can be one of three formats :
 #### Anagram only
 A list of letters to generate anagrams of. 
 E.g. `gasnir` will produce
@@ -53,6 +53,10 @@ A simple concatenation of anagram and crossword, joined with a logical boolean A
 E.g. `gasnir:.r..ns` produces `grains`
 
 
+## Console
+- `java uk.me.andrewhunt.crossword.Main console ./index_directory`
+
+Provides a command line to input any valid search term.
 
 ## Diff
 - `java uk.me.andrewhunt.crossword.Main diff ./words1.txt ./words2.txt`
