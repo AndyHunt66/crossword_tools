@@ -49,7 +49,7 @@ public class Main
             Scanner scanner = new Scanner(System.in);
             while (true)
             {
-                System.out.println("Please input a line");
+                System.out.println("Please input a search term:");
                 String line = scanner.nextLine();
                 ArrayList<String> words = searcher.search(line);
                 for (String word : words)
@@ -79,8 +79,9 @@ public class Main
     private static void printUsage()
     {
         System.out.println("Usage: ");
-        System.out.println("         index   <index directory> <word file>");
+        System.out.println("         index   <index directory> <word file> [<append>]");
         System.out.println("         search  <index directory> <search term>");
         System.out.println("         console <index directory>");
+        System.out.println("         diff    <word file 1> <word file 2> [<output file>]");
     }
 }

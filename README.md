@@ -13,9 +13,13 @@ Current capabilities:
 
 Create a new index from the words file, in the specified directory
 
-Words.txt is one alpha-only word per line. The current one I use is from https://github.com/dwyl/english-words/blob/master/words_alpha.txt
+Words.txt is one alpha-only word per line. 
 
 If `append` is added, words.txt will be added to the index, otherwise a new index is created, overwriting what was there before.
+
+The word list I use currently is a mashup of
+- https://github.com/dwyl/english-words/blob/master/words_alpha.txt
+- The word list included in https://www.powerlanguage.co.uk/wordle/ (only 5 letter words)
 
 ## Search
 - `java uk.me.andrewhunt.crossword.Main search ./index_directory search_term`
