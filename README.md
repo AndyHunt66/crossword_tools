@@ -8,11 +8,13 @@ The end-goal is to have a fully-featured mobile app, but that's a long way off.
 
 Current capabilities:
 - `java uk.me.andrewhunt.crossword.Main index ./index_directory ./words.txt`
+- `java uk.me.andrewhunt.crossword.Main index ./index_directory ./words.txt append`
 
 Create a new index from the words file, in the specified directory
 
 Words.txt is one alpha-only word per line. The current one I use is from https://github.com/dwyl/english-words/blob/master/words_alpha.txt
 
+If `append` is added, words.txt will be added to the index, otherwise a new index is created, overwriting what was there before.
 
 - `java uk.me.andrewhunt.crossword.Main search ./index_directory search_term`
 
@@ -52,6 +54,12 @@ E.g. `gasnir:.r..ns` produces `grains`
 There is currently very little defensive checking if files exist, or directories exist, or if the input is valid etc. etc.
 
 
+- `java uk.me.andrewhunt.crossword.Main diff ./words1.txt ./words2.txt`
+- `java uk.me.andrewhunt.crossword.Main diff ./words1.txt ./words2.txt ./output.txt`
+
+Display a list of all the words in `words2.txt` that are not in `words1.txt`.
+
+Optionally, write the alphabetically sorted, concatenated contents of both files to `output.txt` 
 
 
 ## Future To-Do
