@@ -91,6 +91,11 @@ ranids
 etc.etc.etc......
 ```
 
+- Partial anagrams the other way 
+ e.g. Given `asnirb` find every 6-letter, 5-letter, 4-letter, 3-letter, 2-letter (1-letter??) word contained in it. 
+
+- Multiple word anagrams. E.g. given `abcdiklnoww` and specifying `2` words, return `black window` 
+
 - Full Android /  iOS version
 
 

@@ -1,7 +1,10 @@
 package uk.me.andrewhunt.crossword;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Scanner;
 
 public class Main
@@ -13,23 +16,26 @@ public class Main
             printUsage();
             System.exit(1);
         }
-        // index <output index dir> <word list file>
+        // index <output index dir> (<word list file> | testwords )
         // or
         // index <output index dir> <word list file> <append>
         if (args[0].equals("index") && ( args.length == 3 || args.length == 4))
         {
+            LocalDateTime startTime = LocalDateTime.now();
             Indexer indexer = null;
             if (args.length == 3)
             {
-                new Indexer(args[1]);
+                indexer = new Indexer(args[1]);
             }
             else
             {
-                new Indexer(args[1], args[3]);
+                indexer = new Indexer(args[1], args[3]);
             }
             indexer.indexFileOfWords(args[2]);
             indexer.finished();
-
+            LocalDateTime endTime = LocalDateTime.now();
+            long diff = ChronoUnit.SECONDS.between(startTime, endTime);
+            System.out.println("Took: " + diff + " seconds");
             System.exit(0);
         }
         // search <index directory> <search text>
@@ -42,6 +48,8 @@ public class Main
             {
                 System.out.println(result);
             }
+
+
         }
         else if (args[0].equals("console")  && args.length == 2)
         {

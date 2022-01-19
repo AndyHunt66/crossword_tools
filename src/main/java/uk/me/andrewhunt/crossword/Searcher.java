@@ -24,7 +24,7 @@ public class Searcher {
     /***
      *
      * @param searchTerm
-     *     searchTerm format is [anagramString][:xwordstring]
+     *     searchTerm format is [anagramString][:xwordstring][~partialAnagramString]
      * @return ArrayList of strings - the found words - currently in alphabetical order, but this is not guaranteed in the long run
      * @throws IOException
      */
@@ -32,20 +32,28 @@ public class Searcher {
         searchTerm = searchTerm.toLowerCase();
         ArrayList<String> words = new ArrayList<String>();
         BooleanQuery.Builder bq = new BooleanQuery.Builder();
-        int delimiter = searchTerm.indexOf(":");
-        if (delimiter == -1)
+        int xDelimiter = searchTerm.indexOf(":");
+        int pDelimiter = searchTerm.indexOf("~");
+        if (xDelimiter == -1)
         //   Pure anagram
         {
             bq = addAnagramQuery(bq, searchTerm);
-        } else if (delimiter == 0)
+        } else
+        if (xDelimiter == 0)
         // Pure XWord
         {
-            bq = addXwordQuery(bq, searchTerm.substring(delimiter + 1));
-        } else
+            bq = addXwordQuery(bq, searchTerm.substring(xDelimiter + 1));
+        }
+//        else if (pDelimiter == 0)
+//        // Partial anagram
+//        {
+//            bq = addPartialAnagramQuery(bq, searchTerm.substring(pDelimiter = 1));
+//        }
+        else
         // Hybrid Anagram and XWord
         {
-            String anagramString = searchTerm.substring(0, delimiter);
-            String xwordString = searchTerm.substring(delimiter + 1);
+            String anagramString = searchTerm.substring(0, xDelimiter);
+            String xwordString = searchTerm.substring(xDelimiter + 1);
             bq = addAnagramQuery(bq, anagramString);
             bq = addXwordQuery(bq, xwordString);
         }
@@ -59,6 +67,14 @@ public class Searcher {
         }
 
         return words;
+    }
+
+    private BooleanQuery.Builder addPartialAnagramQuery(BooleanQuery.Builder bq, String partialString)
+    {
+        String parts[] = partialString.split("");
+        Arrays.sort(parts);
+        bq.add(new TermQuery(new Term("meme", String.join("", parts))), BooleanClause.Occur.MUST);
+        return bq;
     }
 
     private BooleanQuery.Builder addXwordQuery(BooleanQuery.Builder bq, String xwordString) {

@@ -6,7 +6,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 
+import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.document.Document;
@@ -20,8 +23,13 @@ import org.apache.lucene.store.FSDirectory;
 public class Indexer
 {
 
-    private IndexWriter writer;
+    private static final int SHORT_WORD_MEME_LIMIT = 3;
+    private static final int LONG_WORD_MEME_LIMIT = 8;
+    private static final int SHORT_LONG_WORD_BOUNDARY = 10;
 
+    private static final int UPPER_MEME_LIMIT = 15;
+    private IndexWriter writer;
+    private int docCount = 0;
 
     public Indexer(String dirPath, String openMode) throws IOException
     {
@@ -53,6 +61,8 @@ public class Indexer
 
     public void indexWord(String word) throws IOException
     {
+
+//        System.out.println("Doc indexed: " + word + "  " + docCount);
         word = word.toLowerCase();
         ArrayList<Field> fields = new ArrayList<Field>();
         Document doc = new Document();
@@ -64,6 +74,14 @@ public class Indexer
         }
 
         String parts[] = word.split("");
+        if (word.length() < UPPER_MEME_LIMIT)
+        {
+            ArrayList<String> memes = generateMemes(parts);
+            for (String meme : memes )
+            {
+                fields.add(new StringField("meme", meme, Field.Store.NO));
+            }
+        }
         Arrays.sort(parts);
         String sortedWord = String.join("", parts);
         fields.add(new StringField("alphaSort", sortedWord, Field.Store.NO));
@@ -72,15 +90,90 @@ public class Indexer
         {
             doc.add(field);
         }
-        System.out.println("adding " + word);
+//        System.out.println("adding " + word);
         writer.addDocument(doc);
+        docCount+=1;
+        int k = docCount % 1000;
+        if (k ==  0 )
+        {
+            System.out.println("Doc indexed: " + word + "  " + docCount);
+        }
+//        if (docCount > 10000)
+//        {
+//            writer.forceMerge(1);
+//            writer.close();
+//            System.exit(0);
+//        }
     }
 
+    private ArrayList<String> generateMemes(String[] parts)
+    {
+        ArrayList<String> memes = new ArrayList<>();
+        int lowerMemeLength = 0;
+        if (parts.length <= SHORT_LONG_WORD_BOUNDARY)
+        {
+            lowerMemeLength = SHORT_WORD_MEME_LIMIT;
+        }
+        else
+        {
+            lowerMemeLength = LONG_WORD_MEME_LIMIT;
+        }
+        for (int memeLength = lowerMemeLength ; memeLength <= (parts.length -1) ;  memeLength++)
+        {
+            memes.addAll(generateMemes(parts, memeLength));
+        }
+
+        return memes;
+    }
+
+    private ArrayList<String> generateMemes(String[] parts, int memeLength)
+    {
+//        ArrayList<String> subMemes = new ArrayList<>();
+        HashMap<String, Integer> subMemes = new HashMap<String, Integer>();
+        Iterator<int[]> iterator = CombinatoricsUtils.combinationsIterator(parts.length, memeLength);
+        while (iterator.hasNext())
+        {
+            final int[] myint = iterator.next();
+            String meme = "";
+            for (int count = 0 ; count < myint.length ; count++)
+            {
+                meme+=parts[myint[count]];
+            }
+            String toSort[] = meme.split("");
+            Arrays.sort(toSort);
+            meme = String.join("", toSort);
+
+            if (!subMemes.containsKey(meme))
+            {
+                subMemes.put(meme, 1);
+            }
+        }
+
+        ArrayList<String> strings = new ArrayList<String>();
+        strings.addAll(subMemes.keySet());
+        return strings;
+    }
     public void indexFileOfWords(String filename) throws IOException
     {
+        if (filename.equals("testwords"))
+        {
+            for (String word : testWords() )
+            {
+                indexWord(word);
+            }
+            return;
+        }
         for (String word : Files.readAllLines(Paths.get(filename)))
         {
             indexWord(word);
         }
+    }
+    public ArrayList<String> testWords()
+    {
+        ArrayList<String> testwords = new ArrayList<>();
+        testwords.add("aardvark");
+//        testwords.add("head");
+//        testwords.add("brains");
+        return testwords;
     }
 }
