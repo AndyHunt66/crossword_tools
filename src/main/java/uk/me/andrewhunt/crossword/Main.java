@@ -9,7 +9,7 @@ import java.util.Scanner;
 
 public class Main
 {
-    public static void main(String[] args) throws IOException, InvalidSearchTermException
+    public static void main(String[] args) throws IOException
     {
         if (args.length < 2 )
         {
@@ -43,7 +43,14 @@ public class Main
         {
             ArrayList<String> results = null;
             Searcher searcher = new Searcher(args[1]);
-            results = searcher.search(args[2]);
+            try
+            {
+                results = searcher.search(args[2]);
+            }
+            catch (InvalidSearchTermException e)
+            {
+                e.printStackTrace();
+            }
             for (String result : results)
             {
                 System.out.println(result);
@@ -59,7 +66,15 @@ public class Main
             {
                 System.out.println("Please input a search term:");
                 String line = scanner.nextLine();
-                ArrayList<String> words = searcher.search(line);
+                ArrayList<String> words = null;
+                try
+                {
+                    words = searcher.search(line);
+                }
+                catch (InvalidSearchTermException e)
+                {
+                    e.printStackTrace();
+                }
                 for (String word : words)
                 {
                     System.out.println(word);

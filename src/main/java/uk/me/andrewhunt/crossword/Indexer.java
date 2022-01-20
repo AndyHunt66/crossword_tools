@@ -128,7 +128,6 @@ public class Indexer
 
     private ArrayList<String> generateMemes(String[] parts, int memeLength)
     {
-//        ArrayList<String> subMemes = new ArrayList<>();
         HashMap<String, Integer> subMemes = new HashMap<String, Integer>();
         Iterator<int[]> iterator = CombinatoricsUtils.combinationsIterator(parts.length, memeLength);
         while (iterator.hasNext())

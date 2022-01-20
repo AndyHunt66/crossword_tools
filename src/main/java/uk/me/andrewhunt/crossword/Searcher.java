@@ -4,9 +4,12 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.DirectoryReader;
@@ -81,7 +84,7 @@ public class Searcher {
         }
 
         // Run some basic checks on the input data
-        if (lowerWordLength > upperWordLength)
+        if ((lowerWordLength > upperWordLength) && (upperWordLength != 0))
         {
             throw new InvalidSearchTermException(searchTerm + " - search term has invalid upper and lower anagram bounds.");
         }
@@ -90,13 +93,28 @@ public class Searcher {
             throw new InvalidSearchTermException(searchTerm + " - bounds are negative.");
         }
 
-        if (!anagram.equals(""))
+        if ((!anagram.equals("")) && ((lowerWordLength == 0) && (upperWordLength == 0)) )
         {
             bq = addAnagramQuery(bq, anagram);
         }
         if (!xword.equals(""))
         {
             bq = addXwordQuery(bq, xword);
+        }
+        if (lowerWordLength != 0)
+        {
+            if (upperWordLength != 0)
+            {
+                bq = addPartialQuery(bq,anagram,lowerWordLength,upperWordLength);
+            }
+            else
+            {
+                bq = addPartialQuery(bq,anagram,lowerWordLength);
+            }
+        }
+        else if(upperWordLength != 0)
+        {
+            bq = addPartialQuery(bq,anagram,1,upperWordLength);
         }
 
         Query q2 = bq.build();
@@ -141,6 +159,62 @@ public class Searcher {
         bq.add(new TermQuery(new Term("alphaSort", String.join("", angArray))), BooleanClause.Occur.MUST);
         return bq;
     }
+    private BooleanQuery.Builder addPartialQuery(BooleanQuery.Builder bq, String anagramString, int lowerWordLength)
+    {
+        String angArray[] = anagramString.split("");
+        Arrays.sort(angArray);
+        anagramString =  String.join("", angArray);
 
+        // Partial query - specify how long the resultant word must be
+        //   If the resultant word is shorter than the anagramString,we need to iterate through
+        //   If the resultant word is longer, we just add in pos.x clauses
+        if (anagramString.length() == lowerWordLength)
+        {
+            // trivial case - just send it to the standard anagram query
+            return addAnagramQuery(bq, anagramString);
+        }
+        if (anagramString.length() < lowerWordLength)
+        {
+            bq.add(new TermQuery(new Term("meme", anagramString)), BooleanClause.Occur.MUST);
+            bq.add(new WildcardQuery(new Term("pos."+lowerWordLength, "*")), BooleanClause.Occur.MUST);
+            bq.add(new WildcardQuery(new Term("pos."+(lowerWordLength+1), "*")), BooleanClause.Occur.MUST_NOT);
+        }
+        if (anagramString.length() > lowerWordLength)
+        {
+            BooleanQuery.Builder bqShould = new BooleanQuery.Builder();
+
+            HashMap<String, Integer> subMemes = new HashMap<String, Integer>();
+            String[] parts = anagramString.split("");
+            Iterator<int[]> iterator = CombinatoricsUtils.combinationsIterator(parts.length, lowerWordLength);
+            while (iterator.hasNext())
+            {
+                final int[] myint = iterator.next();
+                String meme = "";
+                for (int count = 0; count < myint.length; count++)
+                {
+                    meme += parts[myint[count]];
+                }
+                String toSort[] = meme.split("");
+                Arrays.sort(toSort);
+                meme = String.join("", toSort);
+                bqShould.add(new TermQuery(new Term("alphaSort", meme)), BooleanClause.Occur.SHOULD);
+            }
+            BooleanQuery.Builder compoundBuilder = new BooleanQuery.Builder();
+            compoundBuilder.add(compoundBuilder.build(), BooleanClause.Occur.MUST);
+            compoundBuilder.add(bq.build(),BooleanClause.Occur.MUST);
+            return compoundBuilder;
+        }
+        return bq;
+    }
+
+
+    private BooleanQuery.Builder addPartialQuery(BooleanQuery.Builder bq, String anagramString, int lowerWordLength, int upperWordLength)
+    {
+        for (int i = lowerWordLength; i <= upperWordLength; i++)
+        {
+            bq =  addPartialQuery(bq,anagramString,i);
+        }
+        return bq;
+    }
 
 }
