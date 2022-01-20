@@ -36,19 +36,19 @@ public class Searcher {
      *         abnisr       -- find anagrams of abnisr
      *         abnisr7      -- find words of 7 letters that include all the letters abnisr
      *         abnisr5      -- find all the words of 5 letters that you can make from the letters abnisr
+     *         abnisr7-9    -- find all the 7,8 and 9 letter words that include all the letters abnisr
+     *         abnisr3-5    -- find all the 3,4 and 5 letter words that you can make from the letters abnisr
+     *         abnisr5-8    -- Same as abnisr7-9, but this includes words shorter than the number of letters provided
+     *         abnisr7-     -- All words 7 letters or longer that include all the letters abnisr
+     *         abnisr-9     -- All words 9 letters or shorter that include all the letters abnisr
+     *         abnisr5-     -- Same as abnisr5-, but including words shorter than the number of provided letters
      *         abnisr5:.a...-- All anagrams of 5 letters long, using the the letters abnisr, with a as the second letter
      *         abnir6:.r    -- Same as above, but the xword section only specifies as many characters as it needs to
      *         :br....      -- find all 6 letter words that start with br
      *
      *
      *     NOT YET IMPLEMENTED
-     *         abnisr7-9    -- find all the 7,8 and 9 letter words that include all the letters abnisr
      *         abnisr..     -- find words of 8 letters that include all the letters abnisr
-     *         abnisr5-8    -- Same as abnisr7-9, but this includes words shorter than the number of letters provided
-     *         abnisr7-     -- All words 7 letters or longer that include all the letters abnisr
-     *         abnisr-9     -- All words 9 letters or shorter that include all the letters abnisr
-     *         abnisr5-     -- Same as abnisr5-, but including words shorter than the number of provided letters
-     *         abnisr-9     -- Same as abnisr-9, but including words shorter than the number of provided letters
      *         abnisr7-9:br -- find all the 7,8 and 9 letter words that include all the letters abnisr and that start with br
      *         abnisr5-8:.a -- AHAHAHAHHAHA - the pinnacle of all acheivement!
      *              find all words whose second letter is a , and include all the letters abnisr if they are 6,7 or 8 letters long, or can be made out of the letters abnisr if they are 5 letters long
@@ -91,7 +91,7 @@ public class Searcher {
         if (partialDelimtier != -1)
         // Partial anagram
         {
-            if (partialDelimtier == anagram.length())
+            if (partialDelimtier == anagram.length()-1)
             // Lower bounded range - no upper bound
             {
                 upperWordLength = MAX_WORD_LENGTH;
@@ -166,11 +166,7 @@ public class Searcher {
         {
             bq = addPartialQuery(bq,anagram,1,upperWordLength);
         }
-        else
-        // Shouldn't have been able to get here, because upperWordLength should have been set to MAX if there was no provided upper bound
-        {
-            throw new InvalidSearchTermException(searchTerm + "Problem with upper bounds");
-        }
+
 
         // Step 4 - check and adjust the requested length of the word
 
