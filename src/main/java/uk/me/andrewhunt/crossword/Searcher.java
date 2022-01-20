@@ -30,7 +30,7 @@ public class Searcher {
     /***
      *
      * @param searchTerm
-     *     searchTerm format is [[String anagramString][int wordlength][- int biggestWordLength]][:xwordstring]
+     *     searchTerm format is [[String anagramString][int wordlength][-][int biggestWordLength]][:xwordstring]
      *     e.g.
      *     IMPLEMENTED:
      *         abnisr       -- find anagrams of abnisr
@@ -40,15 +40,15 @@ public class Searcher {
      *         abnisr3-5    -- find all the 3,4 and 5 letter words that you can make from the letters abnisr
      *         abnisr5-8    -- Same as abnisr7-9, but this includes words shorter than the number of letters provided
      *         abnisr7-     -- All words 7 letters or longer that include all the letters abnisr
+     *         abnisr5-     -- Same as abnisr7-, but including words shorter than the number of provided letters
      *         abnisr-9     -- All words 9 letters or shorter that include all the letters abnisr
-     *         abnisr5-     -- Same as abnisr5-, but including words shorter than the number of provided letters
+     *         abnisr..     -- find words of 8 letters that include all the letters abnisr. INCOMPATIBLE WITH  abnisr7 or :.a
      *         abnisr5:.a...-- All anagrams of 5 letters long, using the the letters abnisr, with a as the second letter
      *         abnir6:.r    -- Same as above, but the xword section only specifies as many characters as it needs to
      *         :br....      -- find all 6 letter words that start with br
      *
      *
      *     NOT YET IMPLEMENTED
-     *         abnisr..     -- find words of 8 letters that include all the letters abnisr
      *         abnisr7-9:br -- find all the 7,8 and 9 letter words that include all the letters abnisr and that start with br
      *         abnisr5-8:.a -- AHAHAHAHHAHA - the pinnacle of all acheivement!
      *              find all words whose second letter is a , and include all the letters abnisr if they are 6,7 or 8 letters long, or can be made out of the letters abnisr if they are 5 letters long
@@ -57,8 +57,11 @@ public class Searcher {
      */
     public ArrayList<String> search(String searchTerm) throws IOException, InvalidSearchTermException
     {
-        // Set up essentially global variables
+        // Clean input
         searchTerm = searchTerm.toLowerCase();
+        searchTerm = searchTerm.strip();
+
+        // Set up essentially global variables
         ArrayList<String> words = new ArrayList<String>();
         BooleanQuery.Builder bq = new BooleanQuery.Builder();
         String xword = "";
@@ -132,7 +135,21 @@ public class Searcher {
         if ((!anagram.equals("")) && ((lowerWordLength == 0) && (upperWordLength == 0)) )
         // Normal Anagram
         {
-            bq = addAnagramQuery(bq, anagram);
+            // Have we got placeholder full stops (periods) ?
+            if (anagram.indexOf(".") != 0)
+            {
+                int count = 0;
+                while (anagram.indexOf(".") != -1)
+                {
+                    count++;
+                    anagram = anagram.substring(0,anagram.indexOf(".")) + anagram.substring(anagram.indexOf(".")+1);
+                }
+                bq = addPartialQuery(bq,anagram,anagram.length()+count);
+            }
+            else
+            {
+                bq = addAnagramQuery(bq, anagram);
+            }
         }
         if (!xword.equals(""))
         // Normal Xword
@@ -169,7 +186,7 @@ public class Searcher {
 
 
         // Step 4 - check and adjust the requested length of the word
-
+        //  If we have abnisr7-9:br a partial query
         // Build and run the query
         Query q2 = bq.build();
 
