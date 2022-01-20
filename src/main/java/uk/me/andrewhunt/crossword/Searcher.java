@@ -31,16 +31,24 @@ public class Searcher {
      * @param searchTerm
      *     searchTerm format is [[String anagramString][int wordlength][- int biggestWordLength]][:xwordstring]
      *     e.g.
+     *     IMPLEMENTED:
      *         abnisr       -- find anagrams of abnisr
-     *         abnisr..     -- find words of 8 letters that include all the letters abnisr
-     *         abnisr5      -- find all the words of 5 letters that you can make from the letters abnisr
      *         abnisr7      -- find words of 7 letters that include all the letters abnisr
-     *         abnisr7-9    -- find all the 7,8 and 9 letter words that include all the letters abnisr
-     *         abnisr5-8    -- Holy shit....
+     *         abnisr5      -- find all the words of 5 letters that you can make from the letters abnisr
+     *         abnisr5:.a...-- All anagrams of 5 letters long, using the the letters abnisr, with a as the second letter
      *         :br....      -- find all 6 letter words that start with br
+     *
+     *     NOT YET IMPLEMENTED
+     *         abnisr..     -- find words of 8 letters that include all the letters abnisr
+     *         abnisr7-9    -- find all the 7,8 and 9 letter words that include all the letters abnisr
+     *         abnisr5-8    -- Same as abnisr7-9, but this includes words shorter than the number of letters provided
+     *         abnisr7-     -- All words 7 letters or longer that include all the letters abnisr
+     *         abnisr-9     -- All words 9 letters or shorter that include all the letters abnisr
+     *         abnisr5-     -- Same as abnisr5-, but including words shorter than the number of provided letters
+     *         abnisr-9     -- Same as abnisr-9, but including words shorter than the number of provided letters
      *         abnisr7-9:br -- find all the 7,8 and 9 letter words that include all the letters abnisr and that start with br
-     *         abnisr5-8:.a -- AHAHAHAHHAHA :
-     *         find all words whose second letter is a , and include all the letters abnisr if they are 6,7 or 8 letters long, or can be made out of the letters abnisr if they are 5 letters long
+     *         abnisr5-8:.a -- AHAHAHAHHAHA - the pinnacle of all acheivement!
+     *              find all words whose second letter is a , and include all the letters abnisr if they are 6,7 or 8 letters long, or can be made out of the letters abnisr if they are 5 letters long
      * @return ArrayList of strings - the found words - currently in alphabetical order, but this is not guaranteed in the long run
      * @throws IOException
      */
@@ -200,8 +208,11 @@ public class Searcher {
                 bqShould.add(new TermQuery(new Term("alphaSort", meme)), BooleanClause.Occur.SHOULD);
             }
             BooleanQuery.Builder compoundBuilder = new BooleanQuery.Builder();
-            compoundBuilder.add(compoundBuilder.build(), BooleanClause.Occur.MUST);
-            compoundBuilder.add(bq.build(),BooleanClause.Occur.MUST);
+            compoundBuilder.add(bqShould.build(), BooleanClause.Occur.MUST);
+            if (bq.build().clauses().size() > 0)
+            {
+                compoundBuilder.add(bq.build(),BooleanClause.Occur.MUST);
+            }
             return compoundBuilder;
         }
         return bq;
