@@ -66,6 +66,11 @@ public class Searcher {
         int lowerWordLength = 0;
         int upperWordLength = 0;
 
+        if (searchTerm.equals(null) || searchTerm.equals(""))
+        {
+            words.add("");
+            return words;
+        }
 
         // Step 1 - split the search term into the anagram part and the Xword part
         String regex = "^(.)*(:)(.)*$";
@@ -227,6 +232,9 @@ public class Searcher {
             bq.add(new TermQuery(new Term("meme", anagramString)), BooleanClause.Occur.MUST);
             bq.add(new WildcardQuery(new Term("pos."+lowerWordLength, "*")), BooleanClause.Occur.MUST);
             bq.add(new WildcardQuery(new Term("pos."+(lowerWordLength+1), "*")), BooleanClause.Occur.MUST_NOT);
+
+            return bq;
+
         }
         if (anagramString.length() > lowerWordLength)
         {
@@ -264,11 +272,19 @@ public class Searcher {
 
     private BooleanQuery.Builder addPartialQuery(BooleanQuery.Builder bq, String anagramString, int lowerWordLength, int upperWordLength)
     {
+        BooleanQuery.Builder compoundBuilder = new BooleanQuery.Builder();
+
         for (int i = lowerWordLength; i <= upperWordLength; i++)
         {
-            bq =  addPartialQuery(bq,anagramString,i);
+            BooleanQuery.Builder bqShould = new BooleanQuery.Builder();
+            bqShould =  addPartialQuery(bqShould,anagramString,i);
+            compoundBuilder.add(bqShould.build(), BooleanClause.Occur.SHOULD);
         }
-        return bq;
+        if (bq.build().clauses().size() > 0)
+        {
+            compoundBuilder.add(bq.build(),BooleanClause.Occur.MUST);
+        }
+        return compoundBuilder;
     }
 
 }
