@@ -71,6 +71,8 @@ Valid search terms:
          abnisr5:.a...-- All anagrams of 5 letters long, using the the letters abnisr, with a as the second letter
          abnir6:.r    -- Same as above, but the xword section only specifies as many characters as it needs to
          :br....      -- find all 6 letter words that start with br
+         abnisr7-9:br -- find all the 7,8 and 9 letter words that include all the letters abnisr and that start with br
+         abnisr5-8:.a -- Like abnisr7-9:br but including words shorter than the number of anagram letters provided 
 ## Console
 - `java uk.me.andrewhunt.crossword.Main console ./index_directory`
 

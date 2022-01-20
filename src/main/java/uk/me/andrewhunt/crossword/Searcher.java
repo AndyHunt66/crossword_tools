@@ -17,12 +17,14 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.FSDirectory;
 
-public class Searcher {
+public class Searcher
+{
     private static final int MAX_WORD_LENGTH = 20;
     private IndexReader reader;
     private IndexSearcher indexSearcher;
 
-    public Searcher(String dirPath) throws IOException {
+    public Searcher(String dirPath) throws IOException
+    {
         this.reader = DirectoryReader.open(FSDirectory.open(Paths.get(dirPath)));
         this.indexSearcher = new IndexSearcher(reader);
     }
@@ -46,9 +48,6 @@ public class Searcher {
      *         abnisr5:.a...-- All anagrams of 5 letters long, using the the letters abnisr, with a as the second letter
      *         abnir6:.r    -- Same as above, but the xword section only specifies as many characters as it needs to
      *         :br....      -- find all 6 letter words that start with br
-     *
-     *
-     *     NOT YET IMPLEMENTED
      *         abnisr7-9:br -- find all the 7,8 and 9 letter words that include all the letters abnisr and that start with br
      *         abnisr5-8:.a -- AHAHAHAHHAHA - the pinnacle of all acheivement!
      *              find all words whose second letter is a , and include all the letters abnisr if they are 6,7 or 8 letters long, or can be made out of the letters abnisr if they are 5 letters long
@@ -64,6 +63,7 @@ public class Searcher {
         // Set up essentially global variables
         ArrayList<String> words = new ArrayList<String>();
         BooleanQuery.Builder bq = new BooleanQuery.Builder();
+        BooleanQuery.Builder xbq = new BooleanQuery.Builder();
         String xword = "";
         String anagram = "";
         int lowerWordLength = 0;
@@ -81,8 +81,8 @@ public class Searcher {
         boolean containsXword = pattern.matcher(searchTerm).matches();
         if (containsXword)
         {
-           xword = searchTerm.substring(searchTerm.indexOf(":")+1);
-           anagram = searchTerm.substring(0,searchTerm.indexOf(":"));
+            xword = searchTerm.substring(searchTerm.indexOf(":") + 1);
+            anagram = searchTerm.substring(0, searchTerm.indexOf(":"));
         }
         else
         {
@@ -94,7 +94,7 @@ public class Searcher {
         if (partialDelimtier != -1)
         // Partial anagram
         {
-            if (partialDelimtier == anagram.length()-1)
+            if (partialDelimtier == anagram.length() - 1)
             // Lower bounded range - no upper bound
             {
                 upperWordLength = MAX_WORD_LENGTH;
@@ -102,10 +102,10 @@ public class Searcher {
             else
             // Set the upper bound
             {
-                String upperBound = anagram.substring(anagram.indexOf("-")+1);
+                String upperBound = anagram.substring(anagram.indexOf("-") + 1);
                 upperWordLength = Integer.parseInt(upperBound);
             }
-            anagram = anagram.substring(0,anagram.indexOf("-"));
+            anagram = anagram.substring(0, anagram.indexOf("-"));
         }
 
         // Is there a lower bound?
@@ -132,7 +132,7 @@ public class Searcher {
 
 
         // Step 3 - Start Building the query
-        if ((!anagram.equals("")) && ((lowerWordLength == 0) && (upperWordLength == 0)) )
+        if ((!anagram.equals("")) && ((lowerWordLength == 0) && (upperWordLength == 0)))
         // Normal Anagram
         {
             // Have we got placeholder full stops (periods) ?
@@ -142,9 +142,9 @@ public class Searcher {
                 while (anagram.indexOf(".") != -1)
                 {
                     count++;
-                    anagram = anagram.substring(0,anagram.indexOf(".")) + anagram.substring(anagram.indexOf(".")+1);
+                    anagram = anagram.substring(0, anagram.indexOf(".")) + anagram.substring(anagram.indexOf(".") + 1);
                 }
-                bq = addPartialQuery(bq,anagram,anagram.length()+count);
+                bq = addPartialQuery(bq, anagram, anagram.length() + count);
             }
             else
             {
@@ -157,21 +157,22 @@ public class Searcher {
             if ((upperWordLength == 0) && (lowerWordLength == 0))
             // No partial anagram, so no need to worry about the length of the target word being different to the number of characters in our Xword pattern
             {
-                bq = addXwordQuery(bq, xword);
+                xbq = addXwordQuery(bq, xword);
             }
             else
             // Partial anagram is in play, so we need to defer to the length specified there to determine how big the target word is
             // e.g. abnisr5:.r  - the xword component is only 2 characters long, but we have specifically requested a 5 letter word
             {
-                bq = addXwordQueryWithoutLength(bq, xword);
+                xbq = addXwordQueryWithoutLength(xbq, xword);
             }
         }
         if (lowerWordLength != 0)
         // Partial with lower bounded range
         {
             if (upperWordLength != 0)
+            // Fully bounded range (e.g. absnir7-9 )
             {
-                bq = addPartialQuery(bq,anagram,lowerWordLength,upperWordLength);
+                bq = addPartialQuery(bq, anagram, lowerWordLength, upperWordLength);
             }
             else
             // Simple partial with single worod length
@@ -179,20 +180,46 @@ public class Searcher {
                 bq = addPartialQuery(bq, anagram, lowerWordLength);
             }
         }
-        else if(upperWordLength != 0)
+        else if (upperWordLength != 0)
         {
-            bq = addPartialQuery(bq,anagram,1,upperWordLength);
+            bq = addPartialQuery(bq, anagram, 1, upperWordLength);
+        }
+
+//        // Step 4 - check and adjust the requested length of the word
+//        //  If we have abnisr7-9:br we need to add in +pos.7:* -pos.10:*
+
+        BooleanQuery.Builder sizeBuilder = new BooleanQuery.Builder();
+        if (lowerWordLength != 0 && upperWordLength != 0 && !xword.equals(""))
+        {
+            sizeBuilder.add(new WildcardQuery(new Term("pos."+lowerWordLength, "*")), BooleanClause.Occur.MUST);
+            sizeBuilder.add(new WildcardQuery(new Term("pos."+(upperWordLength+1), "*")), BooleanClause.Occur.MUST_NOT);
         }
 
 
-        // Step 4 - check and adjust the requested length of the word
-        //  If we have abnisr7-9:br a partial query
+
         // Build and run the query
-        Query q2 = bq.build();
+        BooleanQuery.Builder compoundBuilder = new BooleanQuery.Builder();
+        if (bq.build().clauses().size() > 0)
+        {
+            compoundBuilder.add(bq.build(), BooleanClause.Occur.MUST);
+        }
+        if (xbq.build().clauses().size() > 0)
+        {
+            compoundBuilder.add(xbq.build(), BooleanClause.Occur.MUST);
+        }
+        if (sizeBuilder.build().clauses().size() > 0)
+        {
+            compoundBuilder.add(sizeBuilder.build(), BooleanClause.Occur.MUST);
+        }
+
+
+        Query q2 = compoundBuilder.build();
+
 
         TopDocs results = indexSearcher.search(q2, Integer.MAX_VALUE);
         ScoreDoc[] hits = results.scoreDocs;
-        for (ScoreDoc hit : hits) {
+        for (ScoreDoc hit : hits)
+        {
             Document doc = indexSearcher.doc(hit.doc);
             words.add(doc.get("word"));
         }
@@ -200,7 +227,8 @@ public class Searcher {
         return words;
     }
 
-    private BooleanQuery.Builder addXwordQuery(BooleanQuery.Builder bq, String xwordString) {
+    private BooleanQuery.Builder addXwordQuery(BooleanQuery.Builder bq, String xwordString)
+    {
         bq = addXwordQueryWithoutLength(bq, xwordString);
 
         bq.add(new WildcardQuery(new Term("pos." + (xwordString.length()), "*")), BooleanClause.Occur.MUST);
@@ -208,10 +236,14 @@ public class Searcher {
 
         return bq;
     }
-    private BooleanQuery.Builder addXwordQueryWithoutLength(BooleanQuery.Builder bq, String xwordString) {
+
+    private BooleanQuery.Builder addXwordQueryWithoutLength(BooleanQuery.Builder bq, String xwordString)
+    {
         String parts[] = xwordString.split("");
-        for (int i = 0; i < parts.length; i++) {
-            if (parts[i].equals(".")) {
+        for (int i = 0; i < parts.length; i++)
+        {
+            if (parts[i].equals("."))
+            {
                 continue;
             }
 //            System.out.println(parts[i]);
@@ -220,17 +252,19 @@ public class Searcher {
         return bq;
     }
 
-    private BooleanQuery.Builder addAnagramQuery(BooleanQuery.Builder bq, String anagramString) {
+    private BooleanQuery.Builder addAnagramQuery(BooleanQuery.Builder bq, String anagramString)
+    {
         String angArray[] = anagramString.split("");
         Arrays.sort(angArray);
         bq.add(new TermQuery(new Term("alphaSort", String.join("", angArray))), BooleanClause.Occur.MUST);
         return bq;
     }
+
     private BooleanQuery.Builder addPartialQuery(BooleanQuery.Builder bq, String anagramString, int lowerWordLength)
     {
         String angArray[] = anagramString.split("");
         Arrays.sort(angArray);
-        anagramString =  String.join("", angArray);
+        anagramString = String.join("", angArray);
 
         // Partial query - specify how long the resultant word must be
         //   If the resultant word is shorter than the anagramString,we need to iterate through
@@ -243,8 +277,8 @@ public class Searcher {
         if (anagramString.length() < lowerWordLength)
         {
             bq.add(new TermQuery(new Term("meme", anagramString)), BooleanClause.Occur.MUST);
-            bq.add(new WildcardQuery(new Term("pos."+lowerWordLength, "*")), BooleanClause.Occur.MUST);
-            bq.add(new WildcardQuery(new Term("pos."+(lowerWordLength+1), "*")), BooleanClause.Occur.MUST_NOT);
+            bq.add(new WildcardQuery(new Term("pos." + lowerWordLength, "*")), BooleanClause.Occur.MUST);
+            bq.add(new WildcardQuery(new Term("pos." + (lowerWordLength + 1), "*")), BooleanClause.Occur.MUST_NOT);
 
             return bq;
 
@@ -268,14 +302,14 @@ public class Searcher {
                 Arrays.sort(toSort);
                 meme = String.join("", toSort);
                 bqShould.add(new TermQuery(new Term("alphaSort", meme)), BooleanClause.Occur.SHOULD);
-                bq.add(new WildcardQuery(new Term("pos."+lowerWordLength, "*")), BooleanClause.Occur.MUST);
-                bq.add(new WildcardQuery(new Term("pos."+(lowerWordLength+1), "*")), BooleanClause.Occur.MUST_NOT);
+                bq.add(new WildcardQuery(new Term("pos." + lowerWordLength, "*")), BooleanClause.Occur.MUST);
+                bq.add(new WildcardQuery(new Term("pos." + (lowerWordLength + 1), "*")), BooleanClause.Occur.MUST_NOT);
             }
             BooleanQuery.Builder compoundBuilder = new BooleanQuery.Builder();
             compoundBuilder.add(bqShould.build(), BooleanClause.Occur.MUST);
             if (bq.build().clauses().size() > 0)
             {
-                compoundBuilder.add(bq.build(),BooleanClause.Occur.MUST);
+                compoundBuilder.add(bq.build(), BooleanClause.Occur.MUST);
             }
             return compoundBuilder;
         }
@@ -290,12 +324,12 @@ public class Searcher {
         for (int i = lowerWordLength; i <= upperWordLength; i++)
         {
             BooleanQuery.Builder bqShould = new BooleanQuery.Builder();
-            bqShould =  addPartialQuery(bqShould,anagramString,i);
+            bqShould = addPartialQuery(bqShould, anagramString, i);
             compoundBuilder.add(bqShould.build(), BooleanClause.Occur.SHOULD);
         }
         if (bq.build().clauses().size() > 0)
         {
-            compoundBuilder.add(bq.build(),BooleanClause.Occur.MUST);
+            compoundBuilder.add(bq.build(), BooleanClause.Occur.MUST);
         }
         return compoundBuilder;
     }
