@@ -56,6 +56,18 @@ A simple concatenation of anagram and crossword, joined with a logical boolean A
 
 E.g. `gasnir:.r..ns` produces `grains`
 
+#### Negative Letters
+Any of the above modes can be suffixed by `~<letters>` to exclude any word which contains any of the letters specified
+
+E.g `asnir6:.rai~bt` produces 
+```
+arains
+drains
+grains
+```
+(but not `brains` or `trains`)
+
+
 
 Valid search terms:
 *        abnisr       -- find anagrams of abnisr
@@ -72,7 +84,8 @@ Valid search terms:
          abnir6:.r    -- Same as above, but the xword section only specifies as many characters as it needs to
          :br....      -- find all 6 letter words that start with br
          abnisr7-9:br -- find all the 7,8 and 9 letter words that include all the letters abnisr and that start with br
-         abnisr5-8:.a -- Like abnisr7-9:br but including words shorter than the number of anagram letters provided 
+         abnisr5-8:.a -- Like abnisr7-9:br but including words shorter than the number of anagram letters provided
+         abnis6~r     -- All 6-letter words that include abnis but no word with r in it - this probably won't cope with duplicated letters very well
 ## Console
 - `java uk.me.andrewhunt.crossword.Main console ./index_directory`
 

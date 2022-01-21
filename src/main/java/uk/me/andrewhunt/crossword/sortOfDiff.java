@@ -10,7 +10,7 @@ import java.util.Collections;
 
 public class sortOfDiff
 {
-    private ArrayList<String> list1;
+    private ArrayList<String> list1 = new ArrayList<>(Collections.singletonList(""));
     public sortOfDiff(String file1, String file2, String outFile) throws IOException
     {
         new sortOfDiff(file1,file2);

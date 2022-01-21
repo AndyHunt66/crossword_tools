@@ -277,7 +277,7 @@ public class SearcherTests
 
         for (String result : results)
         {
-            assertTrue(result.length() == 6 );
+            assertEquals(6, result.length());
         }
     }
 
