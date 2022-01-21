@@ -76,23 +76,25 @@ grains
 
 
 Valid example search terms:
-*        abnisr       -- find anagrams of abnisr
-         abnisr7      -- find words of 7 letters that include all the letters abnisr
-         abnisr5      -- find all the words of 5 letters that you can make from the letters abnisr
-         abnisr7-9    -- find all the 7,8 and 9 letter words that include all the letters abnisr
-         abnisr3-5    -- find all the 3,4 and 5 letter words that you can make from the letters abnisr
+```
+         abnisr       -- anagrams of abnisr
+         abnisr7      -- words of 7 letters that include all the letters abnisr
+         abnisr5      -- words of 5 letters that you can make from the letters abnisr
+         abnisr7-9    -- 7,8 and 9 letter words that include all the letters abnisr
+         abnisr3-5    -- 3,4 and 5 letter words that you can make from the letters abnisr
          abnisr5-8    -- Same as abnisr7-9, but this includes words shorter than the number of letters provided
-         abnisr7-     -- All words 7 letters or longer that include all the letters abnisr
+         abnisr7-     -- words 7 letters or longer that include all the letters abnisr
          abnisr5-     -- Same as abnisr7-, but including words shorter than the number of provided letters
-         abnisr-9     -- All words 9 letters or shorter that include all the letters abnisr
-         abnisr..     -- find words of 8 letters that include all the letters abnisr. INCOMPATIBLE WITH  abnisr7 or :.a
-         abnisr5:.a...-- All anagrams of 5 letters long, using the the letters abnisr, with a as the second letter
+         abnisr-9     -- words 9 letters or shorter that include all the letters abnisr
+         abnisr..     -- words of 8 letters that include all the letters abnisr. INCOMPATIBLE WITH  abnisr7 or :.a - use abnisr8 instead 
+         abnisr5:.a...-- anagrams of 5 letters long, using the the letters abnisr, with a as the second letter
          abnir6:.r    -- Same as above, but the xword section only specifies as many characters as it needs to
-         :br....      -- find all 6 letter words that start with br
-         abnisr7-9:br -- find all the 7,8 and 9 letter words that include all the letters abnisr and that start with br
+         :br....      -- 6 letter words that start with br
+         abnisr7-9:br -- 7,8 and 9 letter words that include all the letters abnisr and that start with br
          abnisr5-8:.a -- Like abnisr7-9:br but including words shorter than the number of anagram letters provided
-         abnis6~r     -- All 6-letter words that include abnis but no word with r in it - this probably won't cope with duplicated letters very well
-         asnir5-7:.ai~bt -- all 5,6 or 7-letter words with a and i as the 2nd and 3rd letters, that either include all the letters asnir or can be made from those letters, with no words that include the letters b or t
+         abnis6~r     -- 6-letter words that include abnis but no word with r in it - this probably won't cope with duplicated letters very well
+         asnir5-7:.ai~bt -- 5,6 or 7-letter words with a and i as the 2nd and 3rd letters, that either include all the letters asnir or can be made from those letters, with no words that include the letters b or t
+```
 ## Console
 - `java uk.me.andrewhunt.crossword.Main console ./index_directory`
 
@@ -110,15 +112,14 @@ Optionally, write the alphabetically sorted, concatenated contents of both files
 
 There is currently very little defensive checking anywhere as to if files exist, or directories exist, or if the input is valid etc. etc.
 
+
+## Java Version
+The project is currently built to target jdk 8. Because of that Lucene 8.11.1 is being used. Lucene 9 needs jdk 11, and I'm constrained for a couple of other reasons to jdk8. It should compile just fine with 11, but there will be one or two warnings about deprecated methods. 
+
 ## Future To-Do
-
-- Multiple partial anagrams 
- e.g. Given `asnirb` and either a range of word lengths, or a minimum or a maximum word length, find every X-letter word 
-asnirb7-9 - all 7 to 9 letter words containing all 6 letters
-
 - Multiple word anagrams. E.g. given `abcdiklnoww` and specifying `2` words, return `black window` 
 
 - Full Android /  iOS version
 
-
 - Proper licenses and acknowledgement of Lucene
+
