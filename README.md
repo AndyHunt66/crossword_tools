@@ -26,7 +26,8 @@ The word list I use currently is a mashup of
 
 Search_term can be one of three formats :
 #### Anagram only
-A list of letters to generate anagrams of. 
+A list of letters to generate anagrams of.
+
 E.g. `gasnir` will produce
 ```
 grains
@@ -34,11 +35,16 @@ grasni
 rasing
 sangir
 ```
+The anagram letters can be followed by a number which specifies the length of the target words.
 
+E.g. `gasnir5` will show all 5-letter words that can be made out of the letters supplied, while `gasnir7` will show all 7-letter words that include all the letters supplied. These can be combined to provide a range, such as `gasnir5-8` and if you want either the upper or lower bound to be unspecified, just leave it out.
+
+So`gasnir-7` will show all 1,2,3,4,5 and 6-letter words that can be made out of the letters given, plus all 7-letter words that include all the given letters. `gasnir9-` will return all the words of 9 letters or more that include all the given letters (up to a maximum word length, which is currently set to 20) 
 
 
 #### Crossword only
-An ordered list of full stops (periods) and letters, where full stops indicate an unkonwn letter and the given letters are in the correct position in the word. All preceeded by a colon.
+An ordered list of full stops (periods) and letters, where full stops indicate an unknown letter and the given letters are in the correct position in the word. All preceded by a colon.
+If used in conjunction with an anagram which specifies how many letters should be in the target word, (see Hybrid mode below), you don't need to specify all the full stops - just enough to count up to the last specified letter.
 
 E.g. `:.r..ns` will produce:
 ```
@@ -69,7 +75,7 @@ grains
 
 
 
-Valid search terms:
+Valid example search terms:
 *        abnisr       -- find anagrams of abnisr
          abnisr7      -- find words of 7 letters that include all the letters abnisr
          abnisr5      -- find all the words of 5 letters that you can make from the letters abnisr
@@ -86,6 +92,7 @@ Valid search terms:
          abnisr7-9:br -- find all the 7,8 and 9 letter words that include all the letters abnisr and that start with br
          abnisr5-8:.a -- Like abnisr7-9:br but including words shorter than the number of anagram letters provided
          abnis6~r     -- All 6-letter words that include abnis but no word with r in it - this probably won't cope with duplicated letters very well
+         asnir5-7:.ai~bt -- all 5,6 or 7-letter words with a and i as the 2nd and 3rd letters, that either include all the letters asnir or can be made from those letters, with no words that include the letters b or t
 ## Console
 - `java uk.me.andrewhunt.crossword.Main console ./index_directory`
 
