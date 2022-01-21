@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import java.util.Scanner;
 
+@SuppressWarnings("InfiniteLoopStatement")
 public class Main
 {
     public static void main(String[] args) throws IOException
@@ -22,7 +23,7 @@ public class Main
         if (args[0].equals("index") && ( args.length == 3 || args.length == 4))
         {
             LocalDateTime startTime = LocalDateTime.now();
-            Indexer indexer = null;
+            Indexer indexer;
             if (args.length == 3)
             {
                 indexer = new Indexer(args[1]);
@@ -51,6 +52,7 @@ public class Main
             {
                 e.printStackTrace();
             }
+            assert results != null;
             for (String result : results)
             {
                 System.out.println(result);
@@ -75,6 +77,7 @@ public class Main
                 {
                     e.printStackTrace();
                 }
+                assert words != null;
                 for (String word : words)
                 {
                     System.out.println(word);
@@ -85,11 +88,11 @@ public class Main
         {
             if ( args.length == 3)
             {
-                sortOfDiff diff = new sortOfDiff(args[1], args[2]);
+                new sortOfDiff(args[1], args[2]);
             }
             if ( args.length == 4)
             {
-                sortOfDiff diff = new sortOfDiff(args[1], args[2], args[3]);
+                new sortOfDiff(args[1], args[2], args[3]);
             }
 
         }

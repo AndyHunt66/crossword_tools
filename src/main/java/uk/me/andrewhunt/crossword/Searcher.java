@@ -20,12 +20,11 @@ import org.apache.lucene.store.FSDirectory;
 public class Searcher
 {
     private static final int MAX_WORD_LENGTH = 20;
-    private IndexReader reader;
-    private IndexSearcher indexSearcher;
+    private final IndexSearcher indexSearcher;
 
     public Searcher(String dirPath) throws IOException
     {
-        this.reader = DirectoryReader.open(FSDirectory.open(Paths.get(dirPath)));
+        IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(dirPath)));
         this.indexSearcher = new IndexSearcher(reader);
     }
 
@@ -38,38 +37,42 @@ public class Searcher
      *         abnisr       -- find anagrams of abnisr
      *         abnisr7      -- find words of 7 letters that include all the letters abnisr
      *         abnisr5      -- find all the words of 5 letters that you can make from the letters abnisr
-     *         abnisr7-9    -- find all the 7,8 and 9 letter words that include all the letters abnisr
-     *         abnisr3-5    -- find all the 3,4 and 5 letter words that you can make from the letters abnisr
+     *         abnisr7-9    -- find all the 7,8 and 9-letter words that include all the letters abnisr
+     *         abnisr3-5    -- find all the 3,4 and 5-letter words that you can make from the letters abnisr
      *         abnisr5-8    -- Same as abnisr7-9, but this includes words shorter than the number of letters provided
      *         abnisr7-     -- All words 7 letters or longer that include all the letters abnisr
      *         abnisr5-     -- Same as abnisr7-, but including words shorter than the number of provided letters
      *         abnisr-9     -- All words 9 letters or shorter that include all the letters abnisr
      *         abnisr..     -- find words of 8 letters that include all the letters abnisr. INCOMPATIBLE WITH  abnisr7 or :.a
-     *         abnisr5:.a...-- All anagrams of 5 letters long, using the the letters abnisr, with a as the second letter
+     *         abnisr5:.a...-- All anagrams of 5 letters long, using the letters abnisr, with "a" as the second letter
      *         abnir6:.r    -- Same as above, but the xword section only specifies as many characters as it needs to
-     *         :br....      -- find all 6 letter words that start with br
-     *         abnisr7-9:br -- find all the 7,8 and 9 letter words that include all the letters abnisr and that start with br
-     *         abnisr5-8:.a -- AHAHAHAHHAHA - the pinnacle of all acheivement!
-     *              find all words whose second letter is a , and include all the letters abnisr if they are 6,7 or 8 letters long, or can be made out of the letters abnisr if they are 5 letters long
+     *         :br....      -- find all 6-letter words that start with br
+     *         abnisr7-9:br -- find all the 7,8 and 9-letter words that include all the letters abnisr and that start with br
+     *         abnisr5-8:.a -- AHAHAHAHHAHA - the pinnacle of all achievement!
+     *              find all words whose second letter is "a" , and include all the letters abnisr if they are 6,7 or 8 letters long, or can be made out of the letters abnisr if they are 5 letters long
+     *
+     *     NOT IMPLEMENTED
+     *         abnis6~r     -- All 6 letter words 
      * @return ArrayList of strings - the found words - currently in alphabetical order, but this is not guaranteed in the long run
-     * @throws IOException
      */
     public ArrayList<String> search(String searchTerm) throws IOException, InvalidSearchTermException
     {
         // Clean input
         searchTerm = searchTerm.toLowerCase();
-        searchTerm = searchTerm.strip();
+        // For JDK 8, use .trim()
+        // For JDK 17 use .strip()
+        searchTerm = searchTerm.trim();
 
         // Set up essentially global variables
-        ArrayList<String> words = new ArrayList<String>();
+        ArrayList<String> words = new ArrayList<>();
         BooleanQuery.Builder bq = new BooleanQuery.Builder();
         BooleanQuery.Builder xbq = new BooleanQuery.Builder();
         String xword = "";
-        String anagram = "";
+        String anagram;
         int lowerWordLength = 0;
         int upperWordLength = 0;
 
-        if (searchTerm.equals(null) || searchTerm.equals(""))
+        if ( searchTerm.equals(""))
         {
             words.add("");
             return words;
@@ -89,12 +92,12 @@ public class Searcher
             anagram = searchTerm;
         }
 
-        // Step 2 - What sort of an anagram is it?
-        int partialDelimtier = anagram.indexOf("-");
-        if (partialDelimtier != -1)
+        // Step 2 - What sort of anagram is it?
+        int partialDelimiter = anagram.indexOf("-");
+        if (partialDelimiter != -1)
         // Partial anagram
         {
-            if (partialDelimtier == anagram.length() - 1)
+            if (partialDelimiter == anagram.length() - 1)
             // Lower bounded range - no upper bound
             {
                 upperWordLength = MAX_WORD_LENGTH;
@@ -123,11 +126,11 @@ public class Searcher
         // TODO: Improve the integrity checking of searchterm
         if ((lowerWordLength > upperWordLength) && (upperWordLength != 0))
         {
-            throw new InvalidSearchTermException(searchTerm + " - search term has invalid upper and lower anagram bounds.");
+            throw new InvalidSearchTermException();
         }
         if ((upperWordLength < 0) || (lowerWordLength < 0))
         {
-            throw new InvalidSearchTermException(searchTerm + " - bounds are negative.");
+            throw new InvalidSearchTermException();
         }
 
 
@@ -139,7 +142,7 @@ public class Searcher
             if (anagram.indexOf(".") != 0)
             {
                 int count = 0;
-                while (anagram.indexOf(".") != -1)
+                while (anagram.contains("."))
                 {
                     count++;
                     anagram = anagram.substring(0, anagram.indexOf(".")) + anagram.substring(anagram.indexOf(".") + 1);
@@ -161,7 +164,7 @@ public class Searcher
             }
             else
             // Partial anagram is in play, so we need to defer to the length specified there to determine how big the target word is
-            // e.g. abnisr5:.r  - the xword component is only 2 characters long, but we have specifically requested a 5 letter word
+            // e.g. abnisr5:.r  - the xword component is only 2 characters long, but we have specifically requested a 5-letter word
             {
                 xbq = addXwordQueryWithoutLength(xbq, xword);
             }
@@ -175,7 +178,7 @@ public class Searcher
                 bq = addPartialQuery(bq, anagram, lowerWordLength, upperWordLength);
             }
             else
-            // Simple partial with single worod length
+            // Simple partial with single word length
             {
                 bq = addPartialQuery(bq, anagram, lowerWordLength);
             }
@@ -223,7 +226,7 @@ public class Searcher
             Document doc = indexSearcher.doc(hit.doc);
             words.add(doc.get("word"));
         }
-
+        words.sort(String::compareToIgnoreCase);
         return words;
     }
 
@@ -239,7 +242,7 @@ public class Searcher
 
     private BooleanQuery.Builder addXwordQueryWithoutLength(BooleanQuery.Builder bq, String xwordString)
     {
-        String parts[] = xwordString.split("");
+        String[] parts = xwordString.split("");
         for (int i = 0; i < parts.length; i++)
         {
             if (parts[i].equals("."))
@@ -254,7 +257,7 @@ public class Searcher
 
     private BooleanQuery.Builder addAnagramQuery(BooleanQuery.Builder bq, String anagramString)
     {
-        String angArray[] = anagramString.split("");
+        String[] angArray = anagramString.split("");
         Arrays.sort(angArray);
         bq.add(new TermQuery(new Term("alphaSort", String.join("", angArray))), BooleanClause.Occur.MUST);
         return bq;
@@ -262,7 +265,7 @@ public class Searcher
 
     private BooleanQuery.Builder addPartialQuery(BooleanQuery.Builder bq, String anagramString, int lowerWordLength)
     {
-        String angArray[] = anagramString.split("");
+        String[] angArray = anagramString.split("");
         Arrays.sort(angArray);
         anagramString = String.join("", angArray);
 
@@ -283,25 +286,25 @@ public class Searcher
             return bq;
 
         }
-        if (anagramString.length() > lowerWordLength)
+        else
+         // (anagramString.length() > lowerWordLength)
         {
             BooleanQuery.Builder bqShould = new BooleanQuery.Builder();
 
-            HashMap<String, Integer> subMemes = new HashMap<String, Integer>();
+            HashMap<String, Integer> subMemes = new HashMap<>();
             String[] parts = anagramString.split("");
             Iterator<int[]> iterator = CombinatoricsUtils.combinationsIterator(parts.length, lowerWordLength);
             while (iterator.hasNext())
             {
                 final int[] myint = iterator.next();
-                String meme = "";
-                for (int count = 0; count < myint.length; count++)
-                {
-                    meme += parts[myint[count]];
+                StringBuilder meme = new StringBuilder();
+                for (int i : myint) {
+                    meme.append(parts[i]);
                 }
-                String toSort[] = meme.split("");
+                String[] toSort = meme.toString().split("");
                 Arrays.sort(toSort);
-                meme = String.join("", toSort);
-                bqShould.add(new TermQuery(new Term("alphaSort", meme)), BooleanClause.Occur.SHOULD);
+                meme = new StringBuilder(String.join("", toSort));
+                bqShould.add(new TermQuery(new Term("alphaSort", meme.toString())), BooleanClause.Occur.SHOULD);
                 bq.add(new WildcardQuery(new Term("pos." + lowerWordLength, "*")), BooleanClause.Occur.MUST);
                 bq.add(new WildcardQuery(new Term("pos." + (lowerWordLength + 1), "*")), BooleanClause.Occur.MUST_NOT);
             }
@@ -313,7 +316,6 @@ public class Searcher
             }
             return compoundBuilder;
         }
-        return bq;
     }
 
 

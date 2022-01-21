@@ -28,13 +28,13 @@ public class Indexer
     private static final int SHORT_LONG_WORD_BOUNDARY = 10;
 
     private static final int UPPER_MEME_LIMIT = 15;
-    private IndexWriter writer;
+    private final IndexWriter writer;
     private int docCount = 0;
 
     public Indexer(String dirPath, String openMode) throws IOException
     {
         IndexWriterConfig.OpenMode mode = IndexWriterConfig.OpenMode.CREATE;
-        if (openMode.toLowerCase().equals("append"))
+        if (openMode.equalsIgnoreCase("append"))
         {
             mode = IndexWriterConfig.OpenMode.CREATE_OR_APPEND;
         }
@@ -64,7 +64,7 @@ public class Indexer
 
 //        System.out.println("Doc indexed: " + word + "  " + docCount);
         word = word.toLowerCase();
-        ArrayList<Field> fields = new ArrayList<Field>();
+        ArrayList<Field> fields = new ArrayList<>();
         Document doc = new Document();
         // Full word
         fields.add(new StringField("word", word, Field.Store.YES));
@@ -73,7 +73,7 @@ public class Indexer
             fields.add(new StringField("pos." + i, word.substring(i - 1, i), Field.Store.NO));
         }
 
-        String parts[] = word.split("");
+        String[] parts = word.split("");
         if (word.length() < UPPER_MEME_LIMIT)
         {
             ArrayList<String> memes = generateMemes(parts);
@@ -98,18 +98,12 @@ public class Indexer
         {
             System.out.println("Doc indexed: " + word + "  " + docCount);
         }
-//        if (docCount > 10000)
-//        {
-//            writer.forceMerge(1);
-//            writer.close();
-//            System.exit(0);
-//        }
     }
 
     private ArrayList<String> generateMemes(String[] parts)
     {
         ArrayList<String> memes = new ArrayList<>();
-        int lowerMemeLength = 0;
+        int lowerMemeLength;
         if (parts.length <= SHORT_LONG_WORD_BOUNDARY)
         {
             lowerMemeLength = SHORT_WORD_MEME_LIMIT;
@@ -128,29 +122,26 @@ public class Indexer
 
     private ArrayList<String> generateMemes(String[] parts, int memeLength)
     {
-        HashMap<String, Integer> subMemes = new HashMap<String, Integer>();
+        HashMap<String, Integer> subMemes = new HashMap<>();
         Iterator<int[]> iterator = CombinatoricsUtils.combinationsIterator(parts.length, memeLength);
         while (iterator.hasNext())
         {
             final int[] myint = iterator.next();
-            String meme = "";
-            for (int count = 0 ; count < myint.length ; count++)
-            {
-                meme+=parts[myint[count]];
+            StringBuilder meme = new StringBuilder();
+            for (int i : myint) {
+                meme.append(parts[i]);
             }
-            String toSort[] = meme.split("");
+            String[] toSort = meme.toString().split("");
             Arrays.sort(toSort);
-            meme = String.join("", toSort);
+            meme = new StringBuilder(String.join("", toSort));
 
-            if (!subMemes.containsKey(meme))
+            if (!subMemes.containsKey(meme.toString()))
             {
-                subMemes.put(meme, 1);
+                subMemes.put(meme.toString(), 1);
             }
         }
 
-        ArrayList<String> strings = new ArrayList<String>();
-        strings.addAll(subMemes.keySet());
-        return strings;
+        return new ArrayList<>(subMemes.keySet());
     }
     public void indexFileOfWords(String filename) throws IOException
     {
@@ -171,8 +162,8 @@ public class Indexer
     {
         ArrayList<String> testwords = new ArrayList<>();
         testwords.add("aardvark");
-//        testwords.add("head");
-//        testwords.add("brains");
+        testwords.add("head");
+        testwords.add("brains");
         return testwords;
     }
 }

@@ -75,7 +75,7 @@ public class SearcherTests
 
     @Test
     @DisplayName("Anagram - Target range greater than letters given")
-    // abnisr7-9    -- find all the 7,8 and 9 letter words that include all the letters abnisr
+    // abnisr7-9    -- find all the 7,8 and 9-letter words that include all the letters abnisr
     public void subRangePartialAnagram() throws InvalidSearchTermException, IOException
     {
         ArrayList<String> results = searcher.search("abnisr7-9");
@@ -88,7 +88,7 @@ public class SearcherTests
 
     @Test
     @DisplayName("Anagram - Target range smaller than letters given")
-    // abnisr3-5    -- find all the 3,4 and 5 letter words that you can make from the letters abnisr
+    // abnisr3-5    -- find all the 3,4 and 5-letter words that you can make from the letters abnisr
     public void superRangePartialAnagram() throws InvalidSearchTermException, IOException
     {
         ArrayList<String> results = searcher.search("abnisr3-5");
@@ -170,13 +170,13 @@ public class SearcherTests
 
         for (String result : results)
         {
-            assertTrue(result.length() == 8);
+            assertEquals(8, result.length());
         }
     }
 
     @Test
     @DisplayName("Anagram plus Xword - simple")
-    // abnisr5:.a...-- All anagrams of 5 letters long, using the letters abnisr, with a as the second letter
+    // abnisr5:.a...-- All anagrams of 5 letters long, using the letters abnisr, with "a" as the second letter
     public void simpleAnagramXword() throws InvalidSearchTermException, IOException
     {
         ArrayList<String> results = searcher.search("abnisr5:.a...");
@@ -186,7 +186,7 @@ public class SearcherTests
 
         for (String result : results)
         {
-            assertTrue(result.length() == 5);
+            assertEquals(5, result.length());
         }
     }
 
@@ -203,14 +203,14 @@ public class SearcherTests
 
         for (String result : results)
         {
-            assertTrue(result.length() == 6);
+            assertEquals(6, result.length());
         }
     }
 
 
     @Test
     @DisplayName("Xword - basic")
-    // :br....      -- find all 6 letter words that start with br
+    // :br....      -- find all 6-letter words that start with br
     public void xwordSimple() throws InvalidSearchTermException, IOException
     {
         ArrayList<String> results = searcher.search(":br....");
@@ -221,13 +221,13 @@ public class SearcherTests
 
         for (String result : results)
         {
-            assertTrue(result.length() == 6);
+            assertEquals(6, result.length());
         }
     }
 
     @Test
     @DisplayName("Anagram with Xword shorter than the target word - range of target lengths")
-    // abnisr7-9:br - find all the 7,8 and 9 letter words that include all the letters abnisr and that start with br
+    // abnisr7-9:br - find all the 7,8 and 9-letter words that include all the letters abnisr and that start with br
     public void AnagramWithShortXwordRange() throws InvalidSearchTermException, IOException
     {
         ArrayList<String> results = searcher.search("abnisr7-9:br");
@@ -244,8 +244,8 @@ public class SearcherTests
 
     @Test
     @DisplayName("Anagram with Xword shorter than the target word - range of target lengths, including shorter than the anagram")
-    // abnisr5-8:.a -- AHAHAHAHHAHA - the pinnacle of all acheivement!
-    //                 find all words whose second letter is a , and include all the letters abnisr if they are 6,7 or 8 letters long, or can be made out of the letters abnisr if they are 5 letters long
+    // abnisr5-8:.a -- AHAHAHAHHAHA - the pinnacle of all achievement!
+    //                 find all words whose second letter is "a" , and include all the letters abnisr if they are 6,7 or 8 letters long, or can be made out of the letters abnisr if they are 5 letters long
     public void AnagramWithShortXwordRangePlusShortTargets() throws InvalidSearchTermException, IOException
     {
         ArrayList<String> results = searcher.search("abnisr5-8:.a");
@@ -260,10 +260,6 @@ public class SearcherTests
         {
             assertTrue(result.length() >= 5 && result.length() <= 8);
         }
-    }
-
-    public void SearcherTests() throws InvalidSearchTermException, IOException
-    {
     }
 
 }
