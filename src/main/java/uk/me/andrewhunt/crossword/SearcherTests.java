@@ -262,4 +262,23 @@ public class SearcherTests
         }
     }
 
+    @Test
+    @DisplayName("Anagram with Negative letters")
+    // arnis6~b -- find all 6-letter words which include arnis but do not include the letter "b"
+    public void AnagramWithNegativeLetters() throws InvalidSearchTermException, IOException
+    {
+        ArrayList<String> results = searcher.search("arnis6~b");
+        assertFalse(results.contains("brisant"));
+        assertFalse(results.contains("brains"));
+        assertTrue(results.contains("arisen"));
+
+        assertFalse(results.contains("transport"));
+        assertFalse(results.contains("is"));
+
+        for (String result : results)
+        {
+            assertTrue(result.length() == 6 );
+        }
+    }
+
 }

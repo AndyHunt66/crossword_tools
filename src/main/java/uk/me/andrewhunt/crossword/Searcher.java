@@ -50,9 +50,8 @@ public class Searcher
      *         abnisr7-9:br -- find all the 7,8 and 9-letter words that include all the letters abnisr and that start with br
      *         abnisr5-8:.a -- AHAHAHAHHAHA - the pinnacle of all achievement!
      *              find all words whose second letter is "a" , and include all the letters abnisr if they are 6,7 or 8 letters long, or can be made out of the letters abnisr if they are 5 letters long
+     *         abnis6~r     -- All 6-letter words that include abnis but no word with r in it - this probably won't cope with duplicated letters very well
      *
-     *     NOT IMPLEMENTED
-     *         abnis6~r     -- All 6 letter words 
      * @return ArrayList of strings - the found words - currently in alphabetical order, but this is not guaranteed in the long run
      */
     public ArrayList<String> search(String searchTerm) throws IOException, InvalidSearchTermException
@@ -68,7 +67,8 @@ public class Searcher
         BooleanQuery.Builder bq = new BooleanQuery.Builder();
         BooleanQuery.Builder xbq = new BooleanQuery.Builder();
         String xword = "";
-        String anagram;
+        String anagram = "";
+        String neglet = "";
         int lowerWordLength = 0;
         int upperWordLength = 0;
 
@@ -78,18 +78,27 @@ public class Searcher
             return words;
         }
 
-        // Step 1 - split the search term into the anagram part and the Xword part
-        String regex = "^(.)*(:)(.)*$";
+        // Step 1 - split the search term into the anagram, Xword, and negative letters
+        String regex = "^(.)*(~)(.)*$";
         Pattern pattern = Pattern.compile(regex);
-        boolean containsXword = pattern.matcher(searchTerm).matches();
-        if (containsXword)
+        boolean containsNegLet = pattern.matcher(searchTerm).matches();
+        if (containsNegLet)
         {
-            xword = searchTerm.substring(searchTerm.indexOf(":") + 1);
-            anagram = searchTerm.substring(0, searchTerm.indexOf(":"));
+            neglet = searchTerm.substring(searchTerm.indexOf("~") + 1);
+            anagram = searchTerm.substring(0, searchTerm.indexOf("~"));
         }
         else
         {
             anagram = searchTerm;
+        }
+
+        regex = "^(.)*(:)(.)*$";
+        pattern = Pattern.compile(regex);
+        boolean containsXword = pattern.matcher(anagram).matches();
+        if (containsXword)
+        {
+            xword = anagram.substring(anagram.indexOf(":") + 1);
+            anagram = anagram.substring(0, anagram.indexOf(":"));
         }
 
         // Step 2 - What sort of anagram is it?
@@ -225,6 +234,23 @@ public class Searcher
         {
             Document doc = indexSearcher.doc(hit.doc);
             words.add(doc.get("word"));
+        }
+
+        // Remove any words banned by the negative letters
+        //  It would probably be faster and better to do this as part of the query somehow
+        //  Maybe index every letter of a word as well, but the index is already massive
+        if (!neglet.equals(""))
+        {
+            for (String word : new ArrayList<String>(words))
+            {
+                for (String letter : neglet.split(""))
+                {
+                    if (word.contains(letter))
+                    {
+                        words.remove(word);
+                    }
+                }
+            }
         }
         words.sort(String::compareToIgnoreCase);
         return words;
